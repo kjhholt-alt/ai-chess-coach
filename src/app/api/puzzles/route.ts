@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Puzzle } from "@/types";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const FALLBACK_PUZZLE: Puzzle = {
+  id: "fallback-1",
+  fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+  moves: ["Qxf7"],
+  rating: 800,
+  themes: ["mateIn1", "short"],
+};
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const theme = searchParams.get("theme");
+  // Rate limit - 60 puzzle fetches per minute per IP
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const { allowed } = checkRateLimit(`puzzles:${ip}`, 60, 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429 }
+    );
+  }
 
   try {
     const res = await fetch("https://lichess.org/api/puzzle/daily", {
@@ -14,7 +30,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (!res.ok) {
-      throw new Error(`Lichess API error: ${res.status}`);
+      console.error(`[puzzles] Lichess API error: ${res.status}`);
+      return NextResponse.json({
+        puzzle: FALLBACK_PUZZLE,
+        isFallback: true,
+      });
     }
 
     const data = await res.json();
@@ -27,26 +47,13 @@ export async function GET(request: NextRequest) {
       themes: data.puzzle?.themes || [],
     };
 
-    if (theme && puzzle.themes.length > 0) {
-      const hasTheme = puzzle.themes.some(
-        (t: string) => t.toLowerCase() === theme.toLowerCase()
-      );
-      if (!hasTheme) {
-        // Return anyway - theme filtering is best-effort with the daily puzzle
-      }
-    }
-
-    return NextResponse.json({ puzzle });
-  } catch (err: any) {
-    // Fallback puzzle if API fails
-    const fallback: Puzzle = {
-      id: "fallback-1",
-      fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
-      moves: ["Qxf7"],
-      rating: 800,
-      themes: ["mateIn1", "short"],
-    };
-
-    return NextResponse.json({ puzzle: fallback });
+    return NextResponse.json({ puzzle, isFallback: false });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("[puzzles] Error:", message);
+    return NextResponse.json({
+      puzzle: FALLBACK_PUZZLE,
+      isFallback: true,
+    });
   }
 }

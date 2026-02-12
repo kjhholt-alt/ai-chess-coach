@@ -1,6 +1,21 @@
-import { Game, Puzzle } from "@/types";
+import { Game } from "@/types";
 
 const LICHESS_API = "https://lichess.org/api";
+
+interface LichessRawGame {
+  id?: string;
+  players?: {
+    white?: { user?: { name?: string } };
+    black?: { user?: { name?: string } };
+  };
+  winner?: string;
+  clock?: { initial: number; increment: number };
+  speed?: string;
+  opening?: { name?: string };
+  pgn?: string;
+  moves?: string;
+  createdAt?: number;
+}
 
 export async function fetchUserGames(
   username: string,
@@ -25,7 +40,7 @@ export async function fetchUserGames(
 
   for (const line of lines) {
     try {
-      const raw = JSON.parse(line);
+      const raw: LichessRawGame = JSON.parse(line);
       games.push(parseGameData(raw, username));
     } catch {
       continue;
@@ -35,7 +50,7 @@ export async function fetchUserGames(
   return games;
 }
 
-export function parseGameData(raw: any, username?: string): Game {
+export function parseGameData(raw: LichessRawGame, username?: string): Game {
   const white = raw.players?.white?.user?.name || "Anonymous";
   const black = raw.players?.black?.user?.name || "Anonymous";
 
@@ -68,53 +83,5 @@ export function parseGameData(raw: any, username?: string): Game {
       ? new Date(raw.createdAt).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
     userColor,
-  };
-}
-
-export async function fetchPuzzle(theme?: string): Promise<Puzzle> {
-  const url = theme
-    ? `https://lichess.org/api/puzzle/activity?max=1`
-    : `https://lichess.org/api/puzzle/daily`;
-
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Lichess Puzzle API error: ${res.status}`);
-  }
-
-  const data = await res.json();
-
-  const puzzle = data.game ? data : data;
-
-  return {
-    id: puzzle.puzzle?.id || String(Date.now()),
-    fen: puzzle.game?.fen || puzzle.fen || "",
-    moves: puzzle.puzzle?.solution || [],
-    rating: puzzle.puzzle?.rating || 1500,
-    themes: puzzle.puzzle?.themes || [],
-  };
-}
-
-export async function fetchPuzzleById(id: string): Promise<Puzzle> {
-  const res = await fetch(`https://lichess.org/api/puzzle/${id}`, {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Puzzle fetch error: ${res.status}`);
-  }
-
-  const data = await res.json();
-
-  return {
-    id: data.puzzle?.id || id,
-    fen: data.game?.pgn
-      ? data.game.pgn
-      : data.puzzle?.fen || "",
-    moves: data.puzzle?.solution || [],
-    rating: data.puzzle?.rating || 1500,
-    themes: data.puzzle?.themes || [],
   };
 }

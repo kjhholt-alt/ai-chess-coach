@@ -19,7 +19,7 @@ export default function SignInPage() {
 
     try {
       const { signIn } = await import("next-auth/react");
-      const result = await signIn("resend", {
+      const result = await signIn("email", {
         email,
         redirect: false,
         callbackUrl: "/dashboard/games",
@@ -107,7 +107,13 @@ export default function SignInPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
+              <p className="text-xs text-muted-foreground mb-3">
+                During beta, sign-in is optional.{" "}
+                <Link href="/dashboard" className="text-primary hover:underline">
+                  Go to dashboard
+                </Link>
+              </p>
               <Link href="/">
                 <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
                   <ArrowLeft className="h-3.5 w-3.5" />

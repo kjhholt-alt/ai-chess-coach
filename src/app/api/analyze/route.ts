@@ -1,26 +1,54 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { Game, Analysis } from "@/types";
+import { checkRateLimit } from "@/lib/rate-limit";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limit by IP - 5 analysis requests per 10 minutes
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const { allowed, resetIn } = checkRateLimit(
+    `analyze:${ip}`,
+    5,
+    10 * 60 * 1000
+  );
+  if (!allowed) {
+    return NextResponse.json(
+      {
+        error: "Too many analysis requests. Please wait before trying again.",
+        retryAfter: Math.ceil(resetIn / 1000),
+      },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(resetIn / 1000)) },
+      }
+    );
+  }
+
   try {
-    const { games, username } = (await request.json()) as {
-      games: Game[];
-      username: string;
-    };
+    const body = await request.json();
+    const games: Game[] = body?.games;
+    const username: string = body?.username;
 
-    if (!games || games.length === 0) {
+    if (!games || !Array.isArray(games) || games.length === 0) {
       return NextResponse.json(
         { error: "No games provided" },
         { status: 400 }
       );
     }
 
+    if (!username || typeof username !== "string") {
+      return NextResponse.json(
+        { error: "Username is required" },
+        { status: 400 }
+      );
+    }
+
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
+      console.error("[analyze] ANTHROPIC_API_KEY is not configured");
       return NextResponse.json(
-        { error: "Anthropic API key not configured" },
-        { status: 500 }
+        { error: "AI analysis is temporarily unavailable. Please try again later." },
+        { status: 503 }
       );
     }
 
@@ -86,8 +114,9 @@ Analyze their opening choices and win rates, middlegame tactical patterns, endga
 
     const content = message.content[0];
     if (content.type !== "text") {
+      console.error("[analyze] Unexpected response type:", content.type);
       return NextResponse.json(
-        { error: "Unexpected response format" },
+        { error: "Unexpected response format from AI" },
         { status: 500 }
       );
     }
@@ -97,17 +126,36 @@ Analyze their opening choices and win rates, middlegame tactical patterns, endga
       const jsonStr = content.text.trim();
       const cleaned = jsonStr.replace(/^```json\s*/, "").replace(/\s*```$/, "");
       analysis = JSON.parse(cleaned);
-    } catch {
+    } catch (parseError) {
+      console.error("[analyze] Failed to parse AI response:", parseError);
       return NextResponse.json(
-        { error: "Failed to parse analysis response" },
+        { error: "Failed to parse analysis. Please try again." },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ analysis });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Analysis failed";
+    console.error("[analyze] Error:", message);
+
+    if (message.includes("authentication") || message.includes("401")) {
+      return NextResponse.json(
+        { error: "AI service authentication error. Please contact support." },
+        { status: 503 }
+      );
+    }
+
+    if (message.includes("rate") || message.includes("429")) {
+      return NextResponse.json(
+        { error: "AI service is busy. Please try again in a minute." },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
-      { error: err.message || "Analysis failed" },
+      { error: "Analysis failed. Please try again later." },
       { status: 500 }
     );
   }

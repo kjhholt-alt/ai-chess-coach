@@ -453,9 +453,15 @@ export default function LandingPage() {
               <Crown className="h-4 w-4 text-primary" />
               <span>AI Chess Coach</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Powered by Claude AI and Lichess
-            </p>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <Link href="/terms" className="hover:text-foreground transition-colors">
+                Terms
+              </Link>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+              <span>Powered by Claude AI & Lichess</span>
+            </div>
           </div>
         </div>
       </footer>
