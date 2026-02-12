@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #ededed;
+  --background: #111827;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@layer utilities {
+  .chess-gradient {
+    background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+  }
+}
