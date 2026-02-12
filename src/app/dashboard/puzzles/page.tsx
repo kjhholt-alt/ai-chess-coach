@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Chess, Square } from "chess.js";
+import { Chess, Square, Move } from "chess.js";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -104,7 +104,7 @@ export default function PuzzlesPage() {
           const from = firstMove.substring(0, 2) as Square;
           const to = firstMove.substring(2, 4) as Square;
           const promo = firstMove.length > 4 ? firstMove[4] : undefined;
-          chess.move({ from, to, promotion: promo as any });
+          chess.move({ from, to, promotion: promo });
           setSolutionIndex(1);
         } catch {
           setSolutionIndex(0);
@@ -305,7 +305,7 @@ export default function PuzzlesPage() {
 
   // Handle player move
   const handleMove = useCallback(
-    (move: { from: string; to: string; san: string }) => {
+    (move: Move) => {
       if (!currentPuzzle || solved || failed) return;
 
       const expectedUCI = currentPuzzle.moves[solutionIndex];
@@ -320,7 +320,7 @@ export default function PuzzlesPage() {
       if (isCorrect) {
         // Apply the move
         try {
-          chess.move({ from: move.from as Square, to: move.to as Square, promotion: expectedUCI.length > 4 ? expectedUCI[4] as any : undefined });
+          chess.move({ from: move.from as Square, to: move.to as Square, promotion: expectedUCI.length > 4 ? expectedUCI[4] : undefined });
         } catch {
           // Already applied by the board
         }
@@ -342,7 +342,7 @@ export default function PuzzlesPage() {
             const oFrom = opponentMove.substring(0, 2) as Square;
             const oTo = opponentMove.substring(2, 4) as Square;
             const oPromo = opponentMove.length > 4 ? opponentMove[4] : undefined;
-            chess.move({ from: oFrom, to: oTo, promotion: oPromo as any });
+            chess.move({ from: oFrom, to: oTo, promotion: oPromo });
             setPosition(chess.fen());
             setLastMove({ from: oFrom, to: oTo });
             setSolutionIndex(nextIdx + 1);
@@ -555,7 +555,7 @@ export default function PuzzlesPage() {
             boardOrientation={orientation}
             boardWidth={480}
             arePiecesDraggable={!solved && !failed}
-            onMove={handleMove as any}
+            onMove={handleMove}
             lastMove={lastMove}
             isCheck={chess.isCheck()}
             promotionSquare={null}

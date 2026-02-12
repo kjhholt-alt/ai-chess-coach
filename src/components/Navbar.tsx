@@ -6,7 +6,14 @@ import { Crown, Brain, Puzzle, Gamepad2, History, BarChart3, LayoutDashboard, Bo
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-const navLinks = [
+interface NavLink {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+}
+
+const navLinks: NavLink[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/play", label: "Play", icon: Gamepad2 },
   { href: "/dashboard/history", label: "History", icon: History },
@@ -38,7 +45,7 @@ export default function Navbar() {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
-              const isActive = (link as any).exact
+              const isActive = link.exact
                 ? pathname === link.href
                 : pathname.startsWith(link.href) && link.href !== "/dashboard";
               return (
@@ -86,7 +93,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
           <div className="px-4 py-3 space-y-1">
             {navLinks.map((link) => {
-              const isActive = (link as any).exact
+              const isActive = link.exact
                 ? pathname === link.href
                 : pathname.startsWith(link.href) && link.href !== "/dashboard";
               return (
