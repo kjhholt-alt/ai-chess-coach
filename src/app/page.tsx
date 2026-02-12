@@ -144,99 +144,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Free Beta Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <h2 className="text-3xl font-bold text-center text-white mb-4">
-          Simple Pricing
-        </h2>
-        <p className="text-center text-gray-400 mb-12">
-          Start with a free analysis, then upgrade for unlimited access.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          {/* Free */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-8">
-            <h3 className="text-lg font-semibold text-white mb-2">Free</h3>
-            <div className="text-3xl font-bold text-white mb-4">$0</div>
-            <ul className="space-y-3 text-sm text-gray-400 mb-8">
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> 1 game analysis
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Game import & viewer
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Daily puzzles
-              </li>
-            </ul>
-            <Link
-              href="/dashboard/games"
-              className="block text-center w-full px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Get Started
-            </Link>
+        <div className="bg-gray-800 border-2 border-chess-accent rounded-2xl p-12 text-center max-w-2xl mx-auto">
+          <div className="inline-block bg-chess-accent/20 text-chess-accent text-sm font-bold px-4 py-1.5 rounded-full mb-6">
+            FREE DURING BETA
           </div>
-
-          {/* Monthly */}
-          <div className="bg-gray-800 border-2 border-chess-accent rounded-xl p-8 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-chess-accent text-white text-xs font-bold px-3 py-1 rounded-full">
-              POPULAR
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Monthly</h3>
-            <div className="text-3xl font-bold text-white mb-1">
-              $5<span className="text-base font-normal text-gray-400">/mo</span>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">Billed monthly</p>
-            <ul className="space-y-3 text-sm text-gray-400 mb-8">
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Unlimited AI analysis
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Personalized study plans
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> All puzzle themes
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Progress tracking
-              </li>
-            </ul>
-            <button
-              onClick={() =>
-                (window.location.href = "/api/checkout?plan=monthly")
-              }
-              className="w-full px-4 py-2 bg-chess-accent hover:bg-chess-accent-hover text-white rounded-lg transition-colors font-semibold"
-            >
-              Subscribe
-            </button>
-          </div>
-
-          {/* Yearly */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-8">
-            <h3 className="text-lg font-semibold text-white mb-2">Yearly</h3>
-            <div className="text-3xl font-bold text-white mb-1">
-              $49<span className="text-base font-normal text-gray-400">/yr</span>
-            </div>
-            <p className="text-sm text-chess-accent mb-4">Save 18%</p>
-            <ul className="space-y-3 text-sm text-gray-400 mb-8">
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Everything in Monthly
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Priority AI analysis
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-chess-accent">&#10003;</span> Early access to features
-              </li>
-            </ul>
-            <button
-              onClick={() =>
-                (window.location.href = "/api/checkout?plan=yearly")
-              }
-              className="w-full px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Subscribe
-            </button>
-          </div>
+          <h2 className="text-3xl font-bold text-white mb-4">
+            All Features. No Cost.
+          </h2>
+          <p className="text-gray-400 mb-8 max-w-lg mx-auto">
+            We are in early beta and everything is free while we build and improve.
+            Get full access to AI analysis, game import, puzzles, and study plans.
+          </p>
+          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm text-gray-300 mb-8">
+            <li className="flex items-center gap-2">
+              <span className="text-chess-accent">&#10003;</span> Unlimited AI analysis
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-chess-accent">&#10003;</span> Game import & viewer
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-chess-accent">&#10003;</span> All puzzle themes
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-chess-accent">&#10003;</span> Personalized study plans
+            </li>
+          </ul>
+          <Link
+            href="/dashboard/games"
+            className="inline-block px-8 py-3 bg-chess-accent hover:bg-chess-accent-hover text-white font-semibold rounded-lg transition-colors"
+          >
+            Get Started Free
+          </Link>
         </div>
       </section>
 
