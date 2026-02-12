@@ -1,8 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Brain,
+  BookOpen,
+  Target,
+  AlertTriangle,
+  Trophy,
+  GraduationCap,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  Search,
+  Check,
+  Crown,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import AnalysisCard from "@/components/AnalysisCard";
 import { Analysis, Game } from "@/types";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
 
 export default function AnalysisPage() {
   const [username, setUsername] = useState("");
@@ -20,15 +49,11 @@ export default function AnalysisPage() {
       const gamesRes = await fetch(
         `/api/games?username=${encodeURIComponent(username.trim())}`
       );
-      if (!gamesRes.ok) {
-        throw new Error("Failed to fetch games");
-      }
+      if (!gamesRes.ok) throw new Error("Failed to fetch games");
       const gamesData = await gamesRes.json();
       const games: Game[] = gamesData.games;
 
-      if (games.length === 0) {
-        throw new Error("No games found for this user");
-      }
+      if (games.length === 0) throw new Error("No games found for this user");
 
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
@@ -51,133 +76,198 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-white mb-2">AI Game Analysis</h1>
-      <p className="text-gray-400 mb-6">
-        Get a comprehensive analysis of your recent games powered by Claude AI.
-      </p>
+    <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.3 }}>
+      <div className="mb-8">
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">AI Game Analysis</h1>
+          <Badge variant="secondary" className="gap-1">
+            <Sparkles className="h-3 w-3" />
+            AI
+          </Badge>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Get a comprehensive coaching report from your recent games, powered by
+          Claude AI.
+        </p>
+      </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-8">
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && runAnalysis()}
-          placeholder="Lichess username"
-          className="w-full sm:w-72 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-chess-accent focus:ring-1 focus:ring-chess-accent"
-        />
-        <button
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && runAnalysis()}
+            placeholder="Lichess username"
+            className="h-10 pl-9 bg-secondary/50 border-border/50"
+          />
+        </div>
+        <Button
           onClick={runAnalysis}
           disabled={loading || !username.trim()}
-          className="px-6 py-2.5 bg-chess-accent hover:bg-chess-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+          className="h-10"
         >
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Brain className="mr-2 h-4 w-4" />
+          )}
           {loading ? "Analyzing..." : "Analyze Games"}
-        </button>
+        </Button>
       </div>
 
       {loading && (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-chess-accent mb-4"></div>
-          <p className="text-gray-400">
-            Analyzing your games... This may take a moment.
-          </p>
-        </div>
+        <Card className="border-border/50 bg-card/30">
+          <CardContent className="flex flex-col items-center justify-center py-20">
+            <div className="relative mb-6">
+              <div className="h-14 w-14 rounded-full border-2 border-primary/20" />
+              <div className="absolute inset-0 h-14 w-14 animate-spin rounded-full border-2 border-transparent border-t-primary" />
+              <Brain className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold">Analyzing your games</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Claude is reviewing your patterns, openings, and tactics...
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {error && (
-        <div className="bg-red-900/30 border border-red-800 text-red-300 px-4 py-3 rounded-lg mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
           {error}
-        </div>
+        </motion.div>
       )}
 
       {analysis && (
-        <div className="space-y-6">
-          {/* Overall Assessment */}
-          <AnalysisCard title="Overall Assessment" icon="&#9812;">
-            <p className="text-base">{analysis.overall}</p>
-          </AnalysisCard>
+        <motion.div
+          className="space-y-5"
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+            <AnalysisCard title="Overall Assessment" icon={Crown}>
+              <p className="text-sm leading-relaxed">{analysis.overall}</p>
+            </AnalysisCard>
+          </motion.div>
 
-          {/* Opening Repertoire */}
-          <AnalysisCard title="Opening Repertoire" icon="&#9813;">
-            <div className="space-y-3">
-              {analysis.openings.map((opening, i) => (
-                <div
-                  key={i}
-                  className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-white">
-                      {opening.name}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Played {opening.frequency}x &middot;{" "}
-                      {Math.round(opening.winRate * 100)}% win rate
-                    </span>
+          <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+            <AnalysisCard title="Opening Repertoire" icon={BookOpen}>
+              <div className="space-y-3">
+                {analysis.openings.map((opening, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-border/50 bg-secondary/30 p-3"
+                  >
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="font-medium text-foreground">
+                        {opening.name}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs font-normal">
+                          {opening.frequency}x
+                        </Badge>
+                        <Badge
+                          className={`text-xs border-0 ${
+                            opening.winRate >= 0.5
+                              ? "bg-emerald-500/15 text-emerald-400"
+                              : "bg-amber-500/15 text-amber-400"
+                          }`}
+                        >
+                          {Math.round(opening.winRate * 100)}% wins
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {opening.suggestion}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-400">{opening.suggestion}</p>
-                </div>
-              ))}
-            </div>
-          </AnalysisCard>
+                ))}
+              </div>
+            </AnalysisCard>
+          </motion.div>
 
-          {/* Strengths */}
-          <AnalysisCard title="Strengths" icon="&#9816;">
-            <ul className="space-y-2">
-              {analysis.strengths.map((s, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="text-chess-accent mt-0.5">&#10003;</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ul>
-          </AnalysisCard>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+              <AnalysisCard title="Strengths" icon={Trophy}>
+                <ul className="space-y-2.5">
+                  {analysis.strengths.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </AnalysisCard>
+            </motion.div>
 
-          {/* Weaknesses */}
-          <AnalysisCard title="Areas for Improvement" icon="&#9814;">
-            <ul className="space-y-2">
-              {analysis.weaknesses.map((w, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="text-yellow-500 mt-0.5">&#9888;</span>
-                  <span>{w}</span>
-                </li>
-              ))}
-            </ul>
-          </AnalysisCard>
+            <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+              <AnalysisCard title="Areas for Improvement" icon={AlertTriangle}>
+                <ul className="space-y-2.5">
+                  {analysis.weaknesses.map((w, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                      <span>{w}</span>
+                    </li>
+                  ))}
+                </ul>
+              </AnalysisCard>
+            </motion.div>
+          </div>
 
-          {/* Top Improvements */}
-          <AnalysisCard title="Top 3 Areas to Improve" icon="&#9819;">
-            <div className="space-y-4">
-              {analysis.topImprovements.map((imp, i) => (
-                <div key={i} className="border-l-2 border-chess-accent pl-4">
-                  <h4 className="font-medium text-white mb-1">
-                    {i + 1}. {imp.area}
-                  </h4>
-                  <p className="mb-2">{imp.description}</p>
-                  <div className="bg-gray-900/50 rounded p-2 text-xs font-mono text-gray-400">
-                    Example: {imp.example}
+          <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+            <AnalysisCard title="Top 3 Areas to Improve" icon={Target}>
+              <div className="space-y-4">
+                {analysis.topImprovements.map((imp, i) => (
+                  <div key={i} className="border-l-2 border-primary pl-4">
+                    <h4 className="mb-1 font-medium text-foreground">
+                      {i + 1}. {imp.area}
+                    </h4>
+                    <p className="mb-2 text-sm">{imp.description}</p>
+                    <div className="rounded-md bg-secondary/50 p-2.5 font-mono text-xs text-muted-foreground">
+                      Example: {imp.example}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </AnalysisCard>
+                ))}
+              </div>
+            </AnalysisCard>
+          </motion.div>
 
-          {/* Study Plan */}
-          <AnalysisCard title="Personalized Study Plan" icon="&#9815;">
-            <ol className="space-y-2 list-decimal list-inside">
-              {analysis.studyPlan.map((step, i) => (
-                <li key={i}>{step}</li>
-              ))}
-            </ol>
-          </AnalysisCard>
-        </div>
+          <motion.div variants={fadeUp} transition={{ duration: 0.3 }}>
+            <AnalysisCard title="Personalized Study Plan" icon={GraduationCap}>
+              <ol className="space-y-2.5">
+                {analysis.studyPlan.map((step, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="pt-0.5">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </AnalysisCard>
+          </motion.div>
+        </motion.div>
       )}
 
       {!loading && !analysis && !error && (
-        <div className="text-center py-16 text-gray-500">
-          <div className="text-4xl mb-4">&#9818;</div>
-          <p>Enter your Lichess username to get AI-powered analysis</p>
-        </div>
+        <Card className="border-border/50 bg-card/30">
+          <CardContent className="flex flex-col items-center justify-center py-20">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <Brain className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold">Ready to analyze</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Enter your Lichess username to get an AI-powered coaching report
+            </p>
+          </CardContent>
+        </Card>
       )}
-    </div>
+    </motion.div>
   );
 }

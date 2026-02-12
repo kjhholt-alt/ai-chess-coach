@@ -4,6 +4,21 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Chess } from "chess.js";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+import {
+  SkipBack,
+  ChevronLeft,
+  ChevronRight,
+  SkipForward,
+  Loader2,
+  Swords,
+  Calendar,
+  Clock,
+  BookOpen,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import MoveList from "@/components/MoveList";
 import { Game } from "@/types";
 
@@ -40,7 +55,7 @@ function GameViewerContent() {
           );
         }
       } catch {
-        // Error handled by showing empty state
+        // handled by empty state
       } finally {
         setLoading(false);
       }
@@ -51,16 +66,13 @@ function GameViewerContent() {
   const goToMove = useCallback(
     (index: number) => {
       chess.reset();
-      const validMoves = moveHistory;
-
-      for (let i = 0; i <= index && i < validMoves.length; i++) {
+      for (let i = 0; i <= index && i < moveHistory.length; i++) {
         try {
-          chess.move(validMoves[i]);
+          chess.move(moveHistory[i]);
         } catch {
           break;
         }
       }
-
       setPosition(chess.fen());
       setCurrentMoveIndex(index);
     },
@@ -68,9 +80,7 @@ function GameViewerContent() {
   );
 
   const goForward = useCallback(() => {
-    if (currentMoveIndex < moveHistory.length - 1) {
-      goToMove(currentMoveIndex + 1);
-    }
+    if (currentMoveIndex < moveHistory.length - 1) goToMove(currentMoveIndex + 1);
   }, [currentMoveIndex, moveHistory.length, goToMove]);
 
   const goBack = useCallback(() => {
@@ -92,9 +102,7 @@ function GameViewerContent() {
   }, [chess]);
 
   const goToEnd = useCallback(() => {
-    if (moveHistory.length > 0) {
-      goToMove(moveHistory.length - 1);
-    }
+    if (moveHistory.length > 0) goToMove(moveHistory.length - 1);
   }, [moveHistory.length, goToMove]);
 
   useEffect(() => {
@@ -111,66 +119,112 @@ function GameViewerContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-chess-accent"></div>
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="text-center py-20 text-gray-500">
-        <p>Game not found</p>
-      </div>
+      <Card className="border-border/50 bg-card/30">
+        <CardContent className="flex flex-col items-center justify-center py-20">
+          <Swords className="mb-4 h-8 w-8 text-muted-foreground" />
+          <p className="text-muted-foreground">Game not found</p>
+        </CardContent>
+      </Card>
     );
   }
 
   const opponent = game.userColor === "white" ? game.black : game.white;
+  const userWon =
+    (game.userColor === "white" && game.result === "white") ||
+    (game.userColor === "black" && game.result === "black");
+  const resultText =
+    game.result === "draw" ? "Draw" : userWon ? "Win" : "Loss";
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">vs {opponent}</h1>
-        <p className="text-gray-400 text-sm mt-1">
-          {game.date} &middot; {game.opening} &middot; {game.timeControl}
-        </p>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">vs {opponent}</h1>
+          <Badge
+            className={
+              game.result === "draw"
+                ? ""
+                : userWon
+                  ? "bg-emerald-500/15 text-emerald-400 border-0"
+                  : "bg-red-500/15 text-red-400 border-0"
+            }
+            variant={game.result === "draw" ? "secondary" : "default"}
+          >
+            {resultText}
+          </Badge>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5" />
+            {game.date}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <BookOpen className="h-3.5 w-3.5" />
+            {game.opening}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            {game.timeControl}
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[auto_1fr]">
         <div>
           <ChessBoard
             position={position}
             boardOrientation={game.userColor}
             boardWidth={480}
           />
-          <div className="flex items-center justify-center gap-2 mt-4">
-            <button
+          <div className="mt-3 flex items-center justify-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={goToStart}
-              className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-              title="Go to start"
+              className="h-9 w-9"
             >
-              &#9198;
-            </button>
-            <button
+              <SkipBack className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={goBack}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-              title="Previous move"
+              className="h-9 w-9"
             >
-              &#9664;
-            </button>
-            <button
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="mx-2 min-w-[60px] text-center text-xs text-muted-foreground">
+              {currentMoveIndex < 0
+                ? "Start"
+                : `${currentMoveIndex + 1} / ${moveHistory.length}`}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={goForward}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-              title="Next move"
+              className="h-9 w-9"
             >
-              &#9654;
-            </button>
-            <button
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={goToEnd}
-              className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-              title="Go to end"
+              className="h-9 w-9"
             >
-              &#9197;
-            </button>
+              <SkipForward className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -180,7 +234,7 @@ function GameViewerContent() {
           onMoveClick={goToMove}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -189,7 +243,7 @@ export default function GameViewerPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-chess-accent"></div>
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       }
     >

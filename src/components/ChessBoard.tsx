@@ -18,7 +18,7 @@ export default function ChessBoard({
   arePiecesDraggable = false,
 }: ChessBoardProps) {
   return (
-    <div className="rounded-lg overflow-hidden shadow-2xl">
+    <div className="overflow-hidden rounded-xl border border-border/50 shadow-2xl shadow-black/20">
       <Chessboard
         id="chess-board"
         position={position}
@@ -27,10 +27,11 @@ export default function ChessBoard({
         boardWidth={boardWidth || 480}
         arePiecesDraggable={arePiecesDraggable}
         customBoardStyle={{
-          borderRadius: "8px",
+          borderRadius: "0px",
         }}
         customDarkSquareStyle={{ backgroundColor: "#779952" }}
         customLightSquareStyle={{ backgroundColor: "#edeed1" }}
+        customDropSquareStyle={{ boxShadow: "inset 0 0 1px 6px rgba(16,185,129,0.5)" }}
       />
     </div>
   );

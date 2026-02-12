@@ -2,19 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground: #ededed;
-  --background: #111827;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 160 84% 39%;
+    --chart-1: 160 84% 39%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 224 30% 7%;
+    --foreground: 210 20% 95%;
+    --card: 224 25% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 224 25% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 224 20% 14%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 224 20% 14%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 224 20% 16%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 224 15% 16%;
+    --input: 224 15% 16%;
+    --ring: 160 84% 39%;
+    --chart-1: 160 84% 39%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: system-ui, -apple-system, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
 }
 
 @layer utilities {
   .chess-gradient {
-    background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+    background: radial-gradient(ellipse at top, hsl(224, 30%, 12%) 0%, hsl(224, 30%, 7%) 60%);
+  }
+  .glow-sm {
+    box-shadow: 0 0 20px -5px hsl(160, 84%, 39%, 0.15);
+  }
+  .glow-md {
+    box-shadow: 0 0 40px -5px hsl(160, 84%, 39%, 0.2);
   }
 }

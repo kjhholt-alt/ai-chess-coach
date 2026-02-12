@@ -1,5 +1,9 @@
 "use client";
 
+import { ListOrdered } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
 interface MoveListProps {
   moves: string[];
   currentMoveIndex: number;
@@ -22,39 +26,48 @@ export default function MoveList({
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 max-h-[480px] overflow-y-auto">
-      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-        Moves
-      </h3>
-      <div className="space-y-1">
-        {movePairs.map((pair) => (
-          <div key={pair.number} className="flex items-center text-sm">
-            <span className="w-8 text-gray-500 font-mono">{pair.number}.</span>
-            <button
-              onClick={() => onMoveClick((pair.number - 1) * 2)}
-              className={`px-2 py-0.5 rounded font-mono transition-colors ${
-                currentMoveIndex === (pair.number - 1) * 2
-                  ? "bg-chess-accent text-white"
-                  : "text-gray-300 hover:bg-gray-700"
-              }`}
-            >
-              {pair.white}
-            </button>
-            {pair.black && (
+    <Card className="border-border/50 bg-card/50">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <ListOrdered className="h-4 w-4" />
+          Moves
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="max-h-[420px] overflow-y-auto">
+        <div className="space-y-0.5">
+          {movePairs.map((pair) => (
+            <div key={pair.number} className="flex items-center text-sm">
+              <span className="w-8 font-mono text-xs text-muted-foreground/60">
+                {pair.number}.
+              </span>
               <button
-                onClick={() => onMoveClick((pair.number - 1) * 2 + 1)}
-                className={`px-2 py-0.5 rounded font-mono transition-colors ${
-                  currentMoveIndex === (pair.number - 1) * 2 + 1
-                    ? "bg-chess-accent text-white"
-                    : "text-gray-300 hover:bg-gray-700"
-                }`}
+                onClick={() => onMoveClick((pair.number - 1) * 2)}
+                className={cn(
+                  "rounded px-2 py-0.5 font-mono text-sm transition-colors",
+                  currentMoveIndex === (pair.number - 1) * 2
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-accent"
+                )}
               >
-                {pair.black}
+                {pair.white}
               </button>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
+              {pair.black && (
+                <button
+                  onClick={() => onMoveClick((pair.number - 1) * 2 + 1)}
+                  className={cn(
+                    "rounded px-2 py-0.5 font-mono text-sm transition-colors",
+                    currentMoveIndex === (pair.number - 1) * 2 + 1
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground hover:bg-accent"
+                  )}
+                >
+                  {pair.black}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

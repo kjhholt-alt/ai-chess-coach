@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Crown, Mail, ArrowLeft, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -32,69 +37,87 @@ export default function SignInPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-chess-bg px-4">
-        <div className="max-w-md w-full bg-gray-800 rounded-xl border border-gray-700 p-8 text-center">
-          <div className="text-4xl mb-4">&#9993;</div>
-          <h1 className="text-2xl font-bold text-white mb-3">
-            Check Your Email
-          </h1>
-          <p className="text-gray-400 mb-6">
-            We sent a magic link to <strong className="text-white">{email}</strong>.
-            Click the link in the email to sign in.
-          </p>
-          <Link
-            href="/"
-            className="text-chess-accent hover:text-chess-accent-hover transition-colors text-sm"
-          >
-            Back to home
-          </Link>
-        </div>
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card className="w-full max-w-md border-border/50 bg-card/50">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold">Check your email</h1>
+              <p className="mx-auto mt-3 max-w-xs text-sm text-muted-foreground">
+                We sent a magic link to{" "}
+                <span className="font-medium text-foreground">{email}</span>.
+                Click the link in the email to sign in.
+              </p>
+              <Link href="/" className="mt-6 inline-block">
+                <Button variant="ghost" size="sm" className="gap-1.5">
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to home
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-chess-bg px-4">
-      <div className="max-w-md w-full bg-gray-800 rounded-xl border border-gray-700 p-8">
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-3">&#9822;</div>
-          <h1 className="text-2xl font-bold text-white">Sign In</h1>
-          <p className="text-gray-400 mt-2 text-sm">
-            Enter your email to receive a magic link
-          </p>
-        </div>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
+      >
+        <Card className="border-border/50 bg-card/50">
+          <CardContent className="p-8">
+            <div className="mb-8 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold">Welcome back</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enter your email to receive a magic link
+              </p>
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            required
-            className="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-chess-accent focus:ring-1 focus:ring-chess-accent"
-          />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+                className="h-11 bg-secondary/50 border-border/50"
+              />
 
-          {error && (
-            <div className="text-red-400 text-sm">{error}</div>
-          )}
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
 
-          <button
-            type="submit"
-            className="w-full px-4 py-3 bg-chess-accent hover:bg-chess-accent-hover text-white font-semibold rounded-lg transition-colors"
-          >
-            Send Magic Link
-          </button>
-        </form>
+              <Button type="submit" className="h-11 w-full">
+                Send Magic Link
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </form>
 
-        <div className="mt-6 text-center">
-          <Link
-            href="/"
-            className="text-gray-500 hover:text-gray-300 transition-colors text-sm"
-          >
-            Back to home
-          </Link>
-        </div>
-      </div>
+            <div className="mt-6 text-center">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to home
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
