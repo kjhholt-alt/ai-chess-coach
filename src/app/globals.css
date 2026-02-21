@@ -10,8 +10,8 @@
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 96% 56%;
+    --primary-foreground: 20 14% 4%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96.1%;
@@ -22,9 +22,9 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 160 84% 39%;
-    --chart-1: 160 84% 39%;
-    --chart-2: 173 58% 39%;
+    --ring: 43 96% 56%;
+    --chart-1: 43 96% 56%;
+    --chart-2: 36 91% 50%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
@@ -38,8 +38,8 @@
     --card-foreground: 210 20% 95%;
     --popover: 224 25% 10%;
     --popover-foreground: 210 20% 95%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 96% 56%;
+    --primary-foreground: 20 14% 4%;
     --secondary: 224 20% 14%;
     --secondary-foreground: 210 20% 95%;
     --muted: 224 20% 14%;
@@ -50,9 +50,9 @@
     --destructive-foreground: 0 0% 98%;
     --border: 224 15% 16%;
     --input: 224 15% 16%;
-    --ring: 160 84% 39%;
-    --chart-1: 160 84% 39%;
-    --chart-2: 173 58% 39%;
+    --ring: 43 96% 56%;
+    --chart-1: 43 96% 56%;
+    --chart-2: 36 91% 50%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
@@ -71,12 +71,20 @@
 
 @layer utilities {
   .chess-gradient {
-    background: radial-gradient(ellipse at top, hsl(224, 30%, 12%) 0%, hsl(224, 30%, 7%) 60%);
+    background:
+      radial-gradient(ellipse at top left, hsl(224, 30%, 12%) 0%, hsl(224, 30%, 7%) 60%),
+      radial-gradient(ellipse at bottom right, hsl(30, 40%, 10%) 0%, transparent 60%);
   }
   .glow-sm {
-    box-shadow: 0 0 20px -5px hsl(160, 84%, 39%, 0.15);
+    box-shadow: 0 0 20px -5px hsl(43, 96%, 56%, 0.2);
   }
   .glow-md {
-    box-shadow: 0 0 40px -5px hsl(160, 84%, 39%, 0.2);
+    box-shadow: 0 0 40px -5px hsl(43, 96%, 56%, 0.25);
+  }
+  .gold-gradient {
+    background: linear-gradient(135deg, hsl(43, 96%, 65%) 0%, hsl(36, 91%, 52%) 50%, hsl(43, 96%, 65%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
