@@ -170,7 +170,7 @@ export default function LandingPage() {
               <motion.div variants={fadeUp} transition={{ duration: 0.5 }}>
                 <Badge className="mb-6 gap-1.5 border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-500/15">
                   <Sparkles className="h-3 w-3" />
-                  Free during beta — all features unlocked
+                  All features unlocked — 100% free
                 </Badge>
               </motion.div>
 
@@ -232,7 +232,7 @@ export default function LandingPage() {
               >
                 {[
                   { icon: Zap, text: "Instant game analysis" },
-                  { icon: Shield, text: "Free during beta" },
+                  { icon: Shield, text: "Free to use" },
                   { icon: Brain, text: "Powered by Claude AI" },
                   { icon: Puzzle, text: "Targeted puzzles" },
                 ].map((b) => (
@@ -402,14 +402,14 @@ export default function LandingPage() {
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/20 via-transparent to-amber-700/10" />
               <div className="relative rounded-2xl bg-zinc-950/80 p-8 text-center sm:p-12">
                 <Badge className="mb-6 border-amber-500/30 bg-amber-500/10 text-amber-400">
-                  Free During Beta
+                  Free to Use
                 </Badge>
                 <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                   All features. Zero cost.
                 </h2>
                 <p className="mx-auto mt-4 max-w-md text-zinc-400">
-                  Everything is free while we build and improve. Get full access
-                  to AI analysis, game import, puzzles, and study plans.
+                  Get full access to AI analysis, game import, puzzles, and
+                  personalized study plans — completely free.
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-3">
                   {[
