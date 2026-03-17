@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: {
@@ -47,8 +48,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="min-h-screen">{children}
-        <Analytics />
+      <body className="min-h-screen">
+        <ErrorBoundary>
+          {children}
+          <Analytics />
+        </ErrorBoundary>
       </body>
     </html>
   );
