@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import CapturedPieces from "@/components/CapturedPieces";
 import GameOverModal from "@/components/GameOverModal";
+import OpeningExplorer from "@/components/OpeningExplorer";
 import {
   getAIMove,
   getCapturedPieces,
@@ -441,6 +442,52 @@ export default function PlayPage() {
     if (viewingMoveIndex < maxIndex) goToMove(viewingMoveIndex + 1);
   }, [chess, viewingMoveIndex, goToMove]);
 
+  // Handle opening explorer move click
+  const handleOpeningMoveClick = useCallback(
+    (san: string) => {
+      if (gameOver || aiThinking || isViewingHistory) return;
+
+      // Return to current position if viewing history
+      if (isViewingHistory) {
+        goToEnd();
+      }
+
+      try {
+        const result = chess.move(san);
+        if (result) {
+          setPosition(chess.fen());
+          setMoveHistory([...chess.history({ verbose: true })]);
+          setLastMove({ from: result.from, to: result.to });
+          setViewingMoveIndex(chess.history().length - 1);
+          setGameStarted(true);
+
+          if (!checkGameState()) {
+            // If playing against AI and it's AI's turn
+            if (gameMode === "ai") {
+              const aiColor = playerColor === "white" ? "b" : "w";
+              if (chess.turn() === aiColor) {
+                makeAIMove();
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[play] Opening move failed:", err);
+      }
+    },
+    [
+      chess,
+      gameOver,
+      aiThinking,
+      isViewingHistory,
+      goToEnd,
+      gameMode,
+      playerColor,
+      makeAIMove,
+      checkGameState,
+    ]
+  );
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -827,6 +874,13 @@ export default function PlayPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Opening Explorer */}
+          <OpeningExplorer
+            chess={chess}
+            onMoveClick={handleOpeningMoveClick}
+            disabled={gameOver || aiThinking || !isPlayerTurn}
+          />
         </div>
       </div>
 

@@ -17,6 +17,7 @@ interface PlayableChessBoardProps {
   onPromotionSelect: (piece: "q" | "r" | "b" | "n") => void;
   onPromotionCancel: () => void;
   pendingPromotion: { from: string; to: string } | null;
+  customArrows?: Array<[Square, Square, string?]>;
 }
 
 export default function PlayableChessBoard({
@@ -32,6 +33,7 @@ export default function PlayableChessBoard({
   onPromotionSelect,
   onPromotionCancel,
   pendingPromotion,
+  customArrows = [],
 }: PlayableChessBoardProps) {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [moveFrom, setMoveFrom] = useState<Square | null>(null);
@@ -202,6 +204,7 @@ export default function PlayableChessBoard({
           boardWidth={boardWidth}
           arePiecesDraggable={arePiecesDraggable}
           customSquareStyles={customSquareStyles}
+          customArrows={customArrows}
           customBoardStyle={{
             borderRadius: "0px",
           }}

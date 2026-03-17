@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
@@ -35,6 +35,8 @@ import {
   CircleX,
   Bomb,
   MessageSquare,
+  ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -283,6 +285,42 @@ export default function GameAnalysisPage() {
     return analysis.evaluations[viewingIndex];
   }, [analysis, viewingIndex]);
 
+  // Generate arrows for the best move
+  const bestMoveArrows = useMemo(() => {
+    if (!currentEval?.bestMove || !game) return [];
+
+    // Only show arrows for mistakes, inaccuracies, and blunders
+    if (
+      currentEval.classification === "brilliant" ||
+      currentEval.classification === "great" ||
+      currentEval.classification === "good" ||
+      currentEval.classification === "forced" ||
+      currentEval.classification === "book"
+    ) {
+      return [];
+    }
+
+    try {
+      // Parse the best move SAN to get from/to squares
+      const tempChess = new Chess();
+      for (let i = 0; i < viewingIndex; i++) {
+        if (game.moves[i]) {
+          tempChess.move(game.moves[i].san);
+        }
+      }
+
+      const move = tempChess.move(currentEval.bestMove);
+      if (move) {
+        tempChess.undo();
+        return [[move.from, move.to, "rgb(34, 197, 94)"]] as Array<[Square, Square, string]>;
+      }
+    } catch {
+      // Invalid move notation
+    }
+
+    return [];
+  }, [currentEval, game, viewingIndex]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -358,25 +396,32 @@ export default function GameAnalysisPage() {
         <div>
           {/* Evaluation bar */}
           {analysis && (
-            <div className="mb-2 flex items-center gap-2">
-              <div className="h-4 flex-1 overflow-hidden rounded-full bg-zinc-700">
-                <div
-                  className="h-full bg-white transition-all duration-300"
-                  style={{
-                    width: `${Math.max(
-                      5,
-                      Math.min(95, 50 + (currentEval ? currentEval.centipawns / 100 : 0) * 5)
-                    )}%`,
-                  }}
-                />
+            <div className="mb-3 rounded-lg border border-border/50 bg-card/50 p-3">
+              <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Black</span>
+                <span className="font-medium text-foreground">Position Evaluation</span>
+                <span>White</span>
               </div>
-              <span className="min-w-[48px] text-right font-mono text-xs text-muted-foreground">
-                {currentEval
-                  ? `${currentEval.centipawns >= 0 ? "+" : ""}${(
-                      currentEval.centipawns / 100
-                    ).toFixed(1)}`
-                  : "0.0"}
-              </span>
+              <div className="flex items-center gap-3">
+                <div className="h-6 flex-1 overflow-hidden rounded-full bg-zinc-800 border border-border/30">
+                  <div
+                    className="h-full bg-gradient-to-r from-white to-zinc-100 transition-all duration-300"
+                    style={{
+                      width: `${Math.max(
+                        5,
+                        Math.min(95, 50 + (currentEval ? currentEval.centipawns / 100 : 0) * 5)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <span className="min-w-[56px] text-right font-mono text-sm font-medium">
+                  {currentEval
+                    ? `${currentEval.centipawns >= 0 ? "+" : ""}${(
+                        currentEval.centipawns / 100
+                      ).toFixed(1)}`
+                    : "0.0"}
+                </span>
+              </div>
             </div>
           )}
 
@@ -393,6 +438,7 @@ export default function GameAnalysisPage() {
             onPromotionSelect={() => {}}
             onPromotionCancel={() => {}}
             pendingPromotion={null}
+            customArrows={bestMoveArrows}
           />
 
           {/* Navigation */}
@@ -417,7 +463,7 @@ export default function GameAnalysisPage() {
           {/* Current move info */}
           {currentEval && viewingIndex >= 0 && (
             <Card className="mt-3 border-border/50 bg-card/50">
-              <CardContent className="p-3">
+              <CardContent className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {(() => {
@@ -430,7 +476,7 @@ export default function GameAnalysisPage() {
                             {currentEval.classification}
                           </span>
                           {cfg.label && (
-                            <span className={cn("font-mono text-xs", cfg.color)}>
+                            <span className={cn("font-mono text-xs font-bold", cfg.color)}>
                               {cfg.label}
                             </span>
                           )}
@@ -439,15 +485,19 @@ export default function GameAnalysisPage() {
                     })()}
                   </div>
                   {currentEval.cpLoss > 0 && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs font-medium text-red-400">
                       -{currentEval.cpLoss}cp
                     </span>
                   )}
                 </div>
                 {currentEval.bestMove && currentEval.classification !== "good" && currentEval.classification !== "great" && currentEval.classification !== "brilliant" && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Best was: <span className="font-mono">{currentEval.bestMove}</span>
-                  </p>
+                  <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-1.5">
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+                    <p className="text-xs text-emerald-400">
+                      Best move: <span className="font-mono font-semibold">{currentEval.bestMove}</span>
+                    </p>
+                    <ArrowRight className="ml-auto h-3 w-3 text-emerald-400/60" />
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -589,19 +639,22 @@ export default function GameAnalysisPage() {
                       content={({ active, payload }) => {
                         if (!active || !payload?.[0]) return null;
                         const d = payload[0].payload;
+                        const cfg = d.classification ? CLASSIFICATION_ICONS[d.classification as MoveClassification] : null;
                         return (
-                          <div className="rounded-md border border-border bg-card px-2 py-1 text-xs shadow">
-                            <span>Move {d.move}: </span>
-                            <span className="font-mono">
-                              {d.eval !== null
-                                ? `${d.eval >= 0 ? "+" : ""}${d.eval.toFixed(1)}`
-                                : "—"}
-                            </span>
-                            {d.classification && (
-                              <span className="ml-1 capitalize text-muted-foreground">
-                                ({d.classification})
+                          <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-lg">
+                            <div className="font-medium mb-1">Move {d.move}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-semibold">
+                                {d.eval !== null
+                                  ? `${d.eval >= 0 ? "+" : ""}${d.eval.toFixed(1)}`
+                                  : "—"}
                               </span>
-                            )}
+                              {cfg && (
+                                <span className={cn("capitalize text-xs", cfg.color)}>
+                                  {d.classification}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         );
                       }}
@@ -739,12 +792,13 @@ function MoveButton({
   const cfg = evaluation
     ? CLASSIFICATION_ICONS[evaluation.classification]
     : null;
+  const Icon = cfg?.icon;
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-0.5 rounded px-2 py-0.5 font-mono text-sm transition-colors",
+        "flex items-center gap-1 rounded px-2 py-0.5 font-mono text-sm transition-colors relative",
         isActive
           ? "bg-primary text-primary-foreground"
           : "text-foreground hover:bg-accent"
@@ -752,9 +806,12 @@ function MoveButton({
     >
       {san}
       {cfg && cfg.label && (
-        <span className={cn("text-[10px] font-bold", isActive ? "" : cfg.color)}>
+        <span className={cn("text-[10px] font-bold ml-0.5", isActive ? "text-primary-foreground/80" : cfg.color)}>
           {cfg.label}
         </span>
+      )}
+      {Icon && evaluation && evaluation.classification !== "book" && evaluation.classification !== "forced" && (
+        <Icon className={cn("h-2.5 w-2.5 ml-0.5", isActive ? "text-primary-foreground/60" : cfg.color)} />
       )}
     </button>
   );

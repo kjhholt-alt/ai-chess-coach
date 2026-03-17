@@ -1,0 +1,4 @@
+AI Chess Coach - Website Links
+
+Live Site: https://chess.buildkit.store
+GitHub: https://github.com/kjhholt-alt/ai-chess-coach
