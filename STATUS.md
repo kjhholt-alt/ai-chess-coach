@@ -3,8 +3,8 @@
 ## Quick Status
 - **Project:** AI Chess Coach
 - **Current session:** 10 of 10 (Sessions 1-9 complete)
-- **Last updated:** 2026-02-12
-- **Overall health:** 🟢 Feature-complete for beta — 131 tests passing, zero TS errors
+- **Last updated:** 2026-02-14
+- **Overall health:** 🟢 DEPLOYED & LIVE — https://chess.buildkit.store
 
 ---
 
@@ -30,10 +30,8 @@
 - TypeScript compiles clean (zero errors)
 
 ## What's NOT Working / Incomplete
-- `next build` hangs on this machine due to stale Node processes consuming memory — **needs machine restart**
 - Auth pages not created (sign-in / verify-request) — app works without auth for free beta
 - No Stripe payments (intentionally skipped for beta)
-- GameOverModal component IS connected in play page (confirmed at line 833)
 
 ---
 
@@ -68,14 +66,12 @@
 ---
 
 ## Next Session Plan
-**Goal:** Session 10 — Deployment to Vercel
+**Goal:** Beta user acquisition + polish
 **What to do:**
-- Restart machine (clear stale Node processes)
-- Run `next build` to verify production build
-- Deploy to Vercel
-- Configure environment variables (ANTHROPIC_API_KEY, NEXTAUTH_SECRET, NEXTAUTH_URL)
-- Verify deployment works end-to-end
-- Final polish if needed
+- Share chess.buildkit.store on chess communities (Reddit r/chess, Lichess forum)
+- Add auth pages (sign-in / verify-request) if needed for user tracking
+- Collect feedback from early users
+- Consider adding more puzzles or Lichess study integration
 
 ---
 
@@ -113,3 +109,4 @@
 | 7 | 2026-02-12 | Comprehensive testing | ✅ | 11 test files, 131 tests, 100% pass. Removed all `as any` casts. |
 | 8 | 2026-02-11 | Lichess import + history | ✅ | Game import, history browsing, game viewer |
 | 9 | 2026-02-11 | Opening explorer + repertoire | ✅ | Lichess database, move tree, quiz mode |
+| 10 | 2026-02-14 | Deployment verified | ✅ | Live at chess.buildkit.store (custom domain), STATUS.md updated |
