@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { ask } from "@/lib/claudex.js";
 import { Game, Analysis } from "@/types";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -42,17 +42,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      console.error("[analyze] ANTHROPIC_API_KEY is not configured");
-      return NextResponse.json(
-        { error: "AI analysis is temporarily unavailable. Please try again later." },
-        { status: 503 }
-      );
-    }
-
-    const client = new Anthropic({ apiKey });
 
     const gamesContext = games
       .slice(0, 15)
@@ -106,24 +95,11 @@ Please analyze these games and provide a comprehensive coaching report. Return y
 
 Analyze their opening choices and win rates, middlegame tactical patterns, endgame technique, time management tendencies, and common mistakes. Be specific and reference actual games where possible. Provide exactly 3 top improvements and 5 study plan steps. Return ONLY the JSON, no other text.`;
 
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-5-20250514",
-      max_tokens: 2000,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const content = message.content[0];
-    if (content.type !== "text") {
-      console.error("[analyze] Unexpected response type:", content.type);
-      return NextResponse.json(
-        { error: "Unexpected response format from AI" },
-        { status: 500 }
-      );
-    }
+    const r = await ask(prompt, { useCache: true, timeoutMs: 90_000 });
 
     let analysis: Analysis;
     try {
-      const jsonStr = content.text.trim();
+      const jsonStr = r.text.trim();
       const cleaned = jsonStr.replace(/^```json\s*/, "").replace(/\s*```$/, "");
       analysis = JSON.parse(cleaned);
     } catch (parseError) {

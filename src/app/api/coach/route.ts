@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { ask } from "@/lib/claudex.js";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 interface AnalysisSummary {
@@ -68,17 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      console.error("[coach] ANTHROPIC_API_KEY is not configured");
-      return NextResponse.json(
-        { error: "AI coaching is temporarily unavailable. Please try again later." },
-        { status: 503 }
-      );
-    }
-
-    const client = new Anthropic({ apiKey });
-
     const { analysisSummary, mistakes, blunders, playerColor, result, resultReason } = body;
 
     // Determine human-readable result
@@ -127,22 +116,8 @@ Provide coaching feedback in this structure:
 4. LESSON TO FOCUS ON (one specific chess concept they should study)
 5. PRACTICE SUGGESTION (one specific exercise)`;
 
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-5-20250514",
-      max_tokens: 1500,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const content = message.content[0];
-    if (content.type !== "text") {
-      console.error("[coach] Unexpected response type:", content.type);
-      return NextResponse.json(
-        { error: "Unexpected response format from AI" },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ coaching: content.text });
+    const r = await ask(prompt, { useCache: true, timeoutMs: 90_000 });
+    return NextResponse.json({ coaching: r.text });
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Coaching analysis failed";

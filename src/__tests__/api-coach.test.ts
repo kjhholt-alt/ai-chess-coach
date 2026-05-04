@@ -11,19 +11,13 @@ vi.mock("@/lib/rate-limit", () => ({
   }),
 }));
 
-// Mock Anthropic
-vi.mock("@anthropic-ai/sdk", () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      messages: {
-        create: vi.fn(),
-      },
-    })),
-  };
-});
+// Mock claudex
+vi.mock("@/lib/claudex.js", () => ({
+  ask: vi.fn(),
+}));
 
 import { checkRateLimit } from "@/lib/rate-limit";
-import Anthropic from "@anthropic-ai/sdk";
+import { ask } from "@/lib/claudex.js";
 
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
 
@@ -70,7 +64,7 @@ function createRequest(body: unknown): NextRequest {
 }
 
 describe("POST /api/coach", () => {
-  let mockCreate: ReturnType<typeof vi.fn>;
+  const mockAsk = vi.mocked(ask);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,18 +74,11 @@ describe("POST /api/coach", () => {
       resetIn: 600000,
     });
 
-    process.env.ANTHROPIC_API_KEY = "test-key";
-
-    mockCreate = vi.fn().mockResolvedValue({
-      content: [{ type: "text", text: coachingResponse }],
-    });
-
-    vi.mocked(Anthropic).mockImplementation(
-      () =>
-        ({
-          messages: { create: mockCreate },
-        }) as unknown as Anthropic
-    );
+    mockAsk.mockResolvedValue({
+      text: coachingResponse,
+      cached: false,
+      promptHash: "test",
+    } as never);
   });
 
   it("returns coaching feedback on success", async () => {
@@ -141,14 +128,6 @@ describe("POST /api/coach", () => {
     expect(data.error).toContain("analysisSummary");
   });
 
-  it("returns 503 if API key is not configured", async () => {
-    delete process.env.ANTHROPIC_API_KEY;
-    const res = await POST(createRequest(validBody));
-    expect(res.status).toBe(503);
-    const data = await res.json();
-    expect(data.error).toContain("temporarily unavailable");
-  });
-
   it("returns 429 when rate limited", async () => {
     mockCheckRateLimit.mockReturnValueOnce({
       allowed: false,
@@ -164,19 +143,8 @@ describe("POST /api/coach", () => {
     expect(res.headers.get("Retry-After")).toBeTruthy();
   });
 
-  it("returns 500 if Claude returns non-text response", async () => {
-    mockCreate.mockResolvedValueOnce({
-      content: [{ type: "image", source: {} }],
-    });
-
-    const res = await POST(createRequest(validBody));
-    expect(res.status).toBe(500);
-    const data = await res.json();
-    expect(data.error).toContain("Unexpected response format");
-  });
-
-  it("handles Claude API authentication errors", async () => {
-    mockCreate.mockRejectedValueOnce(new Error("authentication failed"));
+  it("handles claudex authentication errors (CLI not signed in)", async () => {
+    mockAsk.mockRejectedValueOnce(new Error("authentication failed") as never);
 
     const res = await POST(createRequest(validBody));
     expect(res.status).toBe(503);
@@ -184,8 +152,8 @@ describe("POST /api/coach", () => {
     expect(data.error).toContain("authentication");
   });
 
-  it("handles Claude API rate limit errors", async () => {
-    mockCreate.mockRejectedValueOnce(new Error("rate limit exceeded 429"));
+  it("handles claudex rate limit errors", async () => {
+    mockAsk.mockRejectedValueOnce(new Error("rate limit exceeded 429") as never);
 
     const res = await POST(createRequest(validBody));
     expect(res.status).toBe(429);

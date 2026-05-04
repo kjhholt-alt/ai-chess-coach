@@ -11,21 +11,16 @@ vi.mock("@/lib/rate-limit", () => ({
   }),
 }));
 
-// Mock Anthropic
-vi.mock("@anthropic-ai/sdk", () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      messages: {
-        create: vi.fn(),
-      },
-    })),
-  };
-});
+// Mock claudex (Max-sub `claude -p` subprocess)
+vi.mock("@/lib/claudex.js", () => ({
+  ask: vi.fn(),
+}));
 
 import { checkRateLimit } from "@/lib/rate-limit";
-import Anthropic from "@anthropic-ai/sdk";
+import { ask } from "@/lib/claudex.js";
 
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
+const mockAsk = vi.mocked(ask);
 
 const validGames = [
   {
@@ -66,8 +61,6 @@ function createRequest(body: unknown): NextRequest {
 }
 
 describe("POST /api/analyze", () => {
-  let mockCreate: ReturnType<typeof vi.fn>;
-
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckRateLimit.mockReturnValue({
@@ -75,21 +68,11 @@ describe("POST /api/analyze", () => {
       remaining: 4,
       resetIn: 600000,
     });
-
-    // Set env var
-    process.env.ANTHROPIC_API_KEY = "test-key";
-
-    // Set up Anthropic mock
-    mockCreate = vi.fn().mockResolvedValue({
-      content: [{ type: "text", text: JSON.stringify(validAnalysis) }],
-    });
-
-    vi.mocked(Anthropic).mockImplementation(
-      () =>
-        ({
-          messages: { create: mockCreate },
-        }) as unknown as Anthropic
-    );
+    mockAsk.mockResolvedValue({
+      text: JSON.stringify(validAnalysis),
+      cached: false,
+      promptHash: "test",
+    } as never);
   });
 
   it("returns 400 if no games provided", async () => {
@@ -109,16 +92,6 @@ describe("POST /api/analyze", () => {
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toContain("Username is required");
-  });
-
-  it("returns 503 if API key is not configured", async () => {
-    delete process.env.ANTHROPIC_API_KEY;
-    const res = await POST(
-      createRequest({ games: validGames, username: "test" })
-    );
-    expect(res.status).toBe(503);
-    const data = await res.json();
-    expect(data.error).toContain("temporarily unavailable");
   });
 
   it("returns 429 when rate limited", async () => {
@@ -150,14 +123,11 @@ describe("POST /api/analyze", () => {
   });
 
   it("handles markdown-wrapped JSON response from Claude", async () => {
-    mockCreate.mockResolvedValueOnce({
-      content: [
-        {
-          type: "text",
-          text: "```json\n" + JSON.stringify(validAnalysis) + "\n```",
-        },
-      ],
-    });
+    mockAsk.mockResolvedValueOnce({
+      text: "```json\n" + JSON.stringify(validAnalysis) + "\n```",
+      cached: false,
+      promptHash: "test",
+    } as never);
 
     const res = await POST(
       createRequest({ games: validGames, username: "testuser" })
@@ -168,9 +138,11 @@ describe("POST /api/analyze", () => {
   });
 
   it("returns 500 if Claude returns unparseable response", async () => {
-    mockCreate.mockResolvedValueOnce({
-      content: [{ type: "text", text: "This is not JSON at all" }],
-    });
+    mockAsk.mockResolvedValueOnce({
+      text: "This is not JSON at all",
+      cached: false,
+      promptHash: "test",
+    } as never);
 
     const res = await POST(
       createRequest({ games: validGames, username: "testuser" })
@@ -178,19 +150,6 @@ describe("POST /api/analyze", () => {
     expect(res.status).toBe(500);
     const data = await res.json();
     expect(data.error).toContain("parse");
-  });
-
-  it("returns 500 if Claude returns non-text response", async () => {
-    mockCreate.mockResolvedValueOnce({
-      content: [{ type: "image", source: {} }],
-    });
-
-    const res = await POST(
-      createRequest({ games: validGames, username: "testuser" })
-    );
-    expect(res.status).toBe(500);
-    const data = await res.json();
-    expect(data.error).toContain("Unexpected response format");
   });
 
   it("limits games context to 15 games", async () => {
@@ -201,10 +160,8 @@ describe("POST /api/analyze", () => {
 
     await POST(createRequest({ games: manyGames, username: "testuser" }));
 
-    const callArgs = mockCreate.mock.calls[0][0];
-    const promptContent = callArgs.messages[0].content;
-    // Should only include first 15 games in context
-    expect(promptContent).toContain("Game 15");
-    expect(promptContent).not.toContain("Game 16");
+    const promptArg = mockAsk.mock.calls[0][0] as string;
+    expect(promptArg).toContain("Game 15");
+    expect(promptArg).not.toContain("Game 16");
   });
 });
