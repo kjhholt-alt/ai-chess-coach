@@ -766,6 +766,27 @@ export default function GameAnalysisPage() {
                 <div className="prose prose-sm prose-invert max-w-none text-sm leading-relaxed whitespace-pre-wrap">
                   {coaching}
                 </div>
+                <Separator className="my-4" />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => router.push("/dashboard/history")}
+                  >
+                    <Brain className="mr-2 h-4 w-4" />
+                    Analyze another game
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => router.push("/dashboard/import")}
+                  >
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Import more games
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
