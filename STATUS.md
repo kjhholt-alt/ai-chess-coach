@@ -2,9 +2,10 @@
 
 ## Quick Status
 - **Project:** AI Chess Coach
-- **Current session:** 10 of 10 (Sessions 1-9 complete)
-- **Last updated:** 2026-02-14
+- **Current session:** 12 (post-launch polish)
+- **Last updated:** 2026-05-12
 - **Overall health:** 🟢 DEPLOYED & LIVE — https://chess.buildkit.store
+- **Claude transport:** Migrated 2026-05-04 to vendored `claudex` (Max sub via `claude -p`); no `ANTHROPIC_API_KEY` required.
 
 ---
 
@@ -30,12 +31,25 @@
 - TypeScript compiles clean (zero errors)
 
 ## What's NOT Working / Incomplete
-- Auth pages not created (sign-in / verify-request) — app works without auth for free beta
-- No Stripe payments (intentionally skipped for beta)
+- No Stripe payments (intentionally — free product, no monetization layer planned for now)
+- Persistence is localStorage-only — no cross-device sync
+- Daily puzzle email digest not yet wired (deferred — needs Resend sender domain verification first)
 
 ---
 
 ## Last Session Summary
+**Date:** 2026-05-12 (Session 12 — Polish + retention sprint)
+**Goal:** Sync repo, refresh docs, post-coach CTA, landing proof, streaming coach
+**What got done:**
+- Rebased onto claudex transport migration (origin was 1 commit ahead with `bd50114`)
+- STATUS.md + README brought current with stack (Next.js 16, claudex transport)
+- Added "analyze another game" CTA after coach response in analysis flow
+- Landing page hero now has a real coaching-output proof block above the fold
+- `/api/coach` converted to streaming via `claudex.askStream()` — UI renders char-by-char
+
+---
+
+## Earlier Session Summary
 **Date:** 2026-02-12 (Session 7 — Testing)
 **Goal:** Comprehensive test suite + code quality cleanup
 **What got done:**
@@ -110,3 +124,5 @@
 | 8 | 2026-02-11 | Lichess import + history | ✅ | Game import, history browsing, game viewer |
 | 9 | 2026-02-11 | Opening explorer + repertoire | ✅ | Lichess database, move tree, quiz mode |
 | 10 | 2026-02-14 | Deployment verified | ✅ | Live at chess.buildkit.store (custom domain), STATUS.md updated |
+| 11 | 2026-05-04 | Claude transport migration | ✅ | Swapped @anthropic-ai/sdk → vendored claudex (Max sub via `claude -p`). No API key needed. |
+| 12 | 2026-05-12 | Polish + retention sprint | ✅ | Refreshed docs, post-coach CTA, landing proof block, streaming coach via askStream() |
