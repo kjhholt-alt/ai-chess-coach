@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ask } from "@/lib/claudex.js";
+import { askStream } from "@/lib/claudex.js";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 interface AnalysisSummary {
@@ -116,8 +116,36 @@ Provide coaching feedback in this structure:
 4. LESSON TO FOCUS ON (one specific chess concept they should study)
 5. PRACTICE SUGGESTION (one specific exercise)`;
 
-    const r = await ask(prompt, { useCache: true, timeoutMs: 90_000 });
-    return NextResponse.json({ coaching: r.text });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const ev of askStream(prompt, { timeoutMs: 90_000 })) {
+            if (ev.type === "text" && ev.text) {
+              controller.enqueue(encoder.encode(ev.text));
+            } else if (ev.type === "error") {
+              controller.error(new Error(ev.text || "Coach stream error"));
+              return;
+            }
+          }
+          controller.close();
+        } catch (err: unknown) {
+          const message =
+            err instanceof Error ? err.message : "Coaching stream failed";
+          console.error("[coach] Stream error:", message);
+          controller.error(err);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Coaching analysis failed";

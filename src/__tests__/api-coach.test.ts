@@ -11,15 +11,16 @@ vi.mock("@/lib/rate-limit", () => ({
   }),
 }));
 
-// Mock claudex
+// Mock claudex's askStream as an async generator
 vi.mock("@/lib/claudex.js", () => ({
-  ask: vi.fn(),
+  askStream: vi.fn(),
 }));
 
 import { checkRateLimit } from "@/lib/rate-limit";
-import { ask } from "@/lib/claudex.js";
+import { askStream } from "@/lib/claudex.js";
 
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
+const mockAskStream = vi.mocked(askStream);
 
 const validBody = {
   pgn: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6",
@@ -63,9 +64,37 @@ function createRequest(body: unknown): NextRequest {
   });
 }
 
-describe("POST /api/coach", () => {
-  const mockAsk = vi.mocked(ask);
+// Build a function that, when called, returns a fresh async generator yielding
+// the response in N text chunks then a final result event. Matches askStream's
+// shape so vitest .mockImplementation(...) can swap it in.
+function makeStreamImpl(text: string, chunks = 3) {
+  return async function* () {
+    const size = Math.max(1, Math.ceil(text.length / chunks));
+    for (let i = 0; i < chunks; i++) {
+      const slice = text.slice(i * size, (i + 1) * size);
+      if (slice) {
+        yield { type: "text" as const, text: slice, raw: {} };
+      }
+    }
+    yield { type: "result" as const, text, raw: {} };
+  };
+}
 
+async function readResponseBody(res: Response): Promise<string> {
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    out += decoder.decode(value, { stream: true });
+  }
+  out += decoder.decode();
+  return out;
+}
+
+describe("POST /api/coach (streaming)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckRateLimit.mockReturnValue({
@@ -73,55 +102,46 @@ describe("POST /api/coach", () => {
       remaining: 4,
       resetIn: 600000,
     });
-
-    mockAsk.mockResolvedValue({
-      text: coachingResponse,
-      cached: false,
-      promptHash: "test",
-    } as never);
+    mockAskStream.mockImplementation(makeStreamImpl(coachingResponse) as never);
   });
 
-  it("returns coaching feedback on success", async () => {
+  it("streams coaching feedback as text/plain on success", async () => {
+    mockAskStream.mockImplementation(makeStreamImpl(coachingResponse) as never);
     const res = await POST(createRequest(validBody));
     expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data.coaching).toBeDefined();
-    expect(data.coaching).toContain("GAME SUMMARY");
+    expect(res.headers.get("Content-Type")).toContain("text/plain");
+    const body = await readResponseBody(res);
+    expect(body).toContain("GAME SUMMARY");
+    expect(body).toContain("LESSON TO FOCUS ON");
   });
 
   it("returns 400 if PGN is missing", async () => {
-    const res = await POST(
-      createRequest({ ...validBody, pgn: "" })
-    );
+    const res = await POST(createRequest({ ...validBody, pgn: "" }));
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toContain("PGN");
   });
 
   it("returns 400 if PGN is not a string", async () => {
-    const res = await POST(
-      createRequest({ ...validBody, pgn: 123 })
-    );
+    const res = await POST(createRequest({ ...validBody, pgn: 123 }));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 if playerColor is invalid", async () => {
-    const res = await POST(
-      createRequest({ ...validBody, playerColor: "red" })
-    );
+    const res = await POST(createRequest({ ...validBody, playerColor: "red" }));
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toContain("playerColor");
   });
 
   it("returns 400 if playerColor is missing", async () => {
-    const { playerColor, ...noColor } = validBody;
+    const { playerColor: _playerColor, ...noColor } = validBody;
     const res = await POST(createRequest(noColor));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 if analysisSummary is missing", async () => {
-    const { analysisSummary, ...noSummary } = validBody;
+    const { analysisSummary: _analysisSummary, ...noSummary } = validBody;
     const res = await POST(createRequest(noSummary));
     expect(res.status).toBe(400);
     const data = await res.json();
@@ -143,33 +163,6 @@ describe("POST /api/coach", () => {
     expect(res.headers.get("Retry-After")).toBeTruthy();
   });
 
-  it("handles claudex authentication errors (CLI not signed in)", async () => {
-    mockAsk.mockRejectedValueOnce(new Error("authentication failed") as never);
-
-    const res = await POST(createRequest(validBody));
-    expect(res.status).toBe(503);
-    const data = await res.json();
-    expect(data.error).toContain("authentication");
-  });
-
-  it("handles claudex rate limit errors", async () => {
-    mockAsk.mockRejectedValueOnce(new Error("rate limit exceeded 429") as never);
-
-    const res = await POST(createRequest(validBody));
-    expect(res.status).toBe(429);
-    const data = await res.json();
-    expect(data.error).toContain("busy");
-  });
-
-  it("handles generic errors gracefully", async () => {
-    mockCreate.mockRejectedValueOnce(new Error("Something went wrong"));
-
-    const res = await POST(createRequest(validBody));
-    expect(res.status).toBe(500);
-    const data = await res.json();
-    expect(data.error).toContain("failed");
-  });
-
   it("includes mistakes and blunders in the prompt", async () => {
     await POST(
       createRequest({
@@ -179,26 +172,23 @@ describe("POST /api/coach", () => {
       })
     );
 
-    const callArgs = mockCreate.mock.calls[0][0];
-    const promptContent = callArgs.messages[0].content;
-    expect(promptContent).toContain("Bad knight move");
-    expect(promptContent).toContain("Hung the queen");
+    const promptArg = mockAskStream.mock.calls[0][0] as string;
+    expect(promptArg).toContain("Bad knight move");
+    expect(promptArg).toContain("Hung the queen");
   });
 
   it("handles missing mistakes and blunders gracefully", async () => {
-    const { mistakes, blunders, ...noMistakes } = validBody;
+    const { mistakes: _mistakes, blunders: _blunders, ...noMistakes } = validBody;
     await POST(createRequest(noMistakes));
 
-    const callArgs = mockCreate.mock.calls[0][0];
-    const promptContent = callArgs.messages[0].content;
-    expect(promptContent).toContain("(none identified)");
+    const promptArg = mockAskStream.mock.calls[0][0] as string;
+    expect(promptArg).toContain("(none identified)");
   });
 
   it("includes result reason in the prompt", async () => {
     await POST(createRequest(validBody));
 
-    const callArgs = mockCreate.mock.calls[0][0];
-    const promptContent = callArgs.messages[0].content;
-    expect(promptContent).toContain("win (checkmate)");
+    const promptArg = mockAskStream.mock.calls[0][0] as string;
+    expect(promptArg).toContain("win (checkmate)");
   });
 });

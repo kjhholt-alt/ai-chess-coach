@@ -206,6 +206,7 @@ export default function GameAnalysisPage() {
       }
     });
 
+    setCoaching(""); // reset to empty so streaming can append
     try {
       const res = await fetch("/api/coach", {
         method: "POST",
@@ -226,11 +227,26 @@ export default function GameAnalysisPage() {
         throw new Error(data.error || "Failed to get coaching feedback");
       }
 
-      const data = await res.json();
-      setCoaching(data.coaching);
+      if (!res.body) {
+        throw new Error("Coach response had no body");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulated += chunk;
+        setCoaching(accumulated);
+      }
+      // Final flush
+      accumulated += decoder.decode();
+      setCoaching(accumulated);
       // Cache coaching
-      updateGame(game.id, { coachingFeedback: data.coaching });
-      setGame({ ...game, coachingFeedback: data.coaching });
+      updateGame(game.id, { coachingFeedback: accumulated });
+      setGame({ ...game, coachingFeedback: accumulated });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to get coaching";
       setCoachingError(msg);
