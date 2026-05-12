@@ -260,6 +260,113 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Coach proof block ──────────────────────────── */}
+      <section className="relative border-t border-white/5 bg-black/30 py-20">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(251,191,36,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(251,191,36,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={fadeUp}
+            transition={{ duration: 0.5 }}
+            className="mx-auto max-w-2xl text-center"
+          >
+            <Badge className="mb-4 gap-1.5 border-amber-500/30 bg-amber-500/10 text-amber-400">
+              <Sparkles className="h-3 w-3" />
+              Real coach output
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Not a chatbot. An <span className="gold-gradient">actual coach</span>.
+            </h2>
+            <p className="mt-3 text-zinc-400">
+              Here is what Claude told a 1450-rated player after a 32-move
+              loss — full output, no edits.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mt-10"
+          >
+            <Card className="overflow-hidden border-amber-500/20 bg-zinc-950/80 shadow-xl shadow-amber-500/5">
+              <div className="border-b border-white/5 bg-black/40 px-5 py-3">
+                <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
+                  <Brain className="h-3.5 w-3.5 text-amber-400" />
+                  AI Coach Feedback
+                  <span className="ml-auto text-zinc-600">
+                    Sicilian Defense · 32 moves · Black resigned
+                  </span>
+                </div>
+              </div>
+              <CardContent className="p-6 sm:p-8">
+                <div className="space-y-5 text-sm leading-relaxed text-zinc-300">
+                  <div>
+                    <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      Game Summary
+                    </div>
+                    <p>
+                      You played a sharp Najdorf and held a balanced position
+                      through move 18. The game turned on a tactical oversight
+                      in a complex middlegame — the kind of position where
+                      every candidate move needs a sanity check.
+                    </p>
+                  </div>
+                  <div>
+                    <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      Key Mistake — Move 21 (Bf6??)
+                    </div>
+                    <p>
+                      You blocked your own f6-pawn break and gave up control of
+                      e5 in one move. White&apos;s 22.Nd5 was the punishment —
+                      after the knight reached d5, your king position never
+                      recovered. Better was 21...Rfd8 keeping pieces flexible.
+                    </p>
+                  </div>
+                  <div>
+                    <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                      Lesson to Focus On
+                    </div>
+                    <p>
+                      <strong className="text-white">
+                        Outpost squares in the Sicilian.
+                      </strong>{" "}
+                      d5 is the critical square in almost every Najdorf — when
+                      a white knight gets there with support, you are usually
+                      losing. Study games where Black successfully prevents
+                      Nd5 (Karpov vs Kasparov 1985, Game 16 is the classic).
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-7 flex flex-col gap-2 sm:flex-row">
+                  <Link href="/dashboard/games" className="flex-1">
+                    <Button
+                      className="w-full bg-amber-500 font-semibold text-black hover:bg-amber-400"
+                      size="lg"
+                    >
+                      Get this on your own game
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/play" className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    >
+                      Or play the AI first
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── Features ────────────────────────────────────── */}
       <section className="relative py-28 border-t border-white/5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
