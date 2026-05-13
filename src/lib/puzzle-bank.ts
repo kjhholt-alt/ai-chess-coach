@@ -38,6 +38,26 @@ export const TACTICAL_THEMES = [
 
 export type TacticalTheme = (typeof TACTICAL_THEMES)[number];
 
+/**
+ * Human-readable label for a camelCase theme key.
+ *
+ *   backRankMate  →  Back Rank Mate
+ *   mateIn1       →  Mate in 1
+ *   discoveredAttack →  Discovered Attack
+ *
+ * Replaces 6+ scattered `theme.replace(/([A-Z])/g," $1").trim()` calls that
+ * left the first word lowercase (`back Rank Mate`).
+ */
+export function displayTheme(theme: string): string {
+  if (!theme) return "";
+  // Split mateIn1/mateIn2/mateIn3 specially so the number gets a space.
+  const mateInMatch = /^mateIn(\d+)$/.exec(theme);
+  if (mateInMatch) return `Mate in ${mateInMatch[1]}`;
+  // Split on every uppercase boundary, lowercase the result, then title-case.
+  const spaced = theme.replace(/([A-Z])/g, " $1").trim().toLowerCase();
+  return spaced.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+}
+
 // 100+ curated puzzles covering all themes and difficulty levels
 export const PUZZLE_BANK: PuzzleData[] = [
   // --- FORKS (rating 800-1600) ---

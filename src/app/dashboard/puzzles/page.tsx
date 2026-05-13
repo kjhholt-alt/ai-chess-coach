@@ -30,6 +30,7 @@ import {
   getPuzzlesByTheme,
   getRandomPuzzle,
   calculateNewRating,
+  displayTheme,
   type PuzzleData,
 } from "@/lib/puzzle-bank";
 import {
@@ -447,7 +448,7 @@ export default function PuzzlesPage() {
                 <div className="flex flex-wrap justify-center gap-1">
                   {sessionSummary.themes.map((t) => (
                     <Badge key={t} variant="secondary" className="text-xs capitalize">
-                      {t.replace(/([A-Z])/g, " $1").trim()}
+                      {displayTheme(t)}
                     </Badge>
                   ))}
                 </div>
@@ -484,7 +485,7 @@ export default function PuzzlesPage() {
             {mode === "daily"
               ? `Daily training — Puzzle ${dailyIndex + 1} of ${dailyQueue.length}`
               : mode === "theme"
-                ? `${selectedTheme.replace(/([A-Z])/g, " $1").trim()} training — Puzzle ${dailyIndex + 1} of ${dailyQueue.length}`
+                ? `${displayTheme(selectedTheme)} training — Puzzle ${dailyIndex + 1} of ${dailyQueue.length}`
                 : "Endless mode — Keep solving!"}
           </p>
         </div>
@@ -540,7 +541,7 @@ export default function PuzzlesPage() {
                 : "bg-secondary/50 hover:bg-secondary text-muted-foreground"
             )}
           >
-            {t.replace(/([A-Z])/g, " $1").trim()}
+            {displayTheme(t)}
           </Button>
         ))}
       </div>
@@ -580,7 +581,7 @@ export default function PuzzlesPage() {
                     Correct!
                     {currentPuzzle?.themes[0] && (
                       <span className="text-emerald-400/70">
-                        — {currentPuzzle.themes[0].replace(/([A-Z])/g, " $1").trim()}
+                        — {displayTheme(currentPuzzle.themes[0])}
                       </span>
                     )}
                   </div>
@@ -656,7 +657,7 @@ export default function PuzzlesPage() {
                   <div className="flex flex-wrap justify-end gap-1">
                     {currentPuzzle.themes.map((t) => (
                       <Badge key={t} variant="secondary" className="text-xs capitalize">
-                        {t.replace(/([A-Z])/g, " $1").trim()}
+                        {displayTheme(t)}
                       </Badge>
                     ))}
                   </div>
@@ -697,7 +698,7 @@ export default function PuzzlesPage() {
                 animate={{ opacity: 1, height: "auto" }}
                 className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300"
               >
-                Look for a {currentPuzzle.themes[0]?.replace(/([A-Z])/g, " $1").trim() || "tactic"}. The move starts from{" "}
+                Look for a {(currentPuzzle.themes[0] ? displayTheme(currentPuzzle.themes[0]) : "tactic")}. The move starts from{" "}
                 {currentPuzzle.moves[solutionIndex]?.substring(0, 2)}...
               </motion.div>
             )}
@@ -765,7 +766,7 @@ export default function PuzzlesPage() {
               {themeAccuracyList.slice(0, 5).map(({ theme, accuracy, total }) => (
                 <div key={theme} className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground capitalize">
-                    {theme.replace(/([A-Z])/g, " $1").trim()}
+                    {displayTheme(theme)}
                   </span>
                   <div className="flex items-center gap-2">
                     <div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">

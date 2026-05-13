@@ -46,6 +46,7 @@ import {
   getCurrentStreak,
   type Achievement,
 } from "@/lib/achievements";
+import { displayTheme } from "@/lib/puzzle-bank";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 10 },
@@ -142,7 +143,7 @@ export default function ProgressPage() {
   const themeMastery = useMemo(() => {
     return Object.entries(puzzleStats.themeAccuracy)
       .map(([theme, data]) => ({
-        theme: theme.replace(/([A-Z])/g, " $1").trim(),
+        theme: displayTheme(theme),
         accuracy: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
         total: data.total,
         correct: data.correct,
